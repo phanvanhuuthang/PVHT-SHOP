@@ -1,0 +1,34 @@
+﻿@{
+    Layout = null;
+}
+<div class="modal-header text-bg-info">
+    <strong class="modal-title">
+        Chọn người giao hàng
+    </strong>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <form id="formShipping" method="post" onsubmit="shipping(event,this)">
+        <div class="row">
+            <div class="col-12">
+                <input type="hidden" name="id" value="@ViewBag.OrderId" />
+                <label class="form-label">Người giao hàng</label>
+                <select class="form-select" name="shipperId" asp-items="await SelectListHelper.Shippers()">
+                    
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="submit" class="btn btn-primary" form="formShipping">
+        <i class="bi bi-bicycle"></i> Giao hàng
+    </button>
+    <button type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal">
+        Đóng
+    </button>
+</div>

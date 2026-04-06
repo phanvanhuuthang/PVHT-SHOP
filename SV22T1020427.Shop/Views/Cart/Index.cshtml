@@ -1,0 +1,201 @@
+@model List<SV22T1020427.Models.Sales.OrderDetailViewInfo>
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    decimal total = Model.Sum(i => i.Quantity * i.SalePrice);
+}
+
+<div class="container py-4">
+    <h4 class="fw-bold mb-4"><i class="bi bi-cart3 me-2 text-primary"></i>Giỏ hàng của bạn</h4>
+
+    @if (Model.Count == 0)
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Giỏ hàng trống</h5>
+            <p class="text-muted">Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm.</p>
+            <a href="/Product/Index" class="btn btn-primary px-4">
+                <i class="bi bi-grid me-2"></i>Tiếp tục mua sắm
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table cart-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3" style="width:50%">Sản phẩm</th>
+                                    <th class="text-center">Đơn giá</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Thành tiền</th>
+                                    <th class="text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    string photo = item.Photo ?? "";
+                                    string imageUrl = string.IsNullOrWhiteSpace(photo) || photo == "nophoto.png"
+                                        ? ""
+                                        : (photo.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                                            || photo.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                                            || photo.StartsWith("/")
+                                                ? photo
+                                                : $"/images/products/{photo}");
+
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                @if (!string.IsNullOrEmpty(imageUrl))
+                                                {
+                                                    <img src="@imageUrl" class="cart-item-img" alt="@item.ProductName" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="cart-item-img bg-light d-flex align-items-center justify-content-center text-muted rounded">
+                                                        <i class="bi bi-image"></i>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <a href="/Product/Details/@item.ProductID" class="text-dark fw-semibold text-decoration-none">
+                                                        @item.ProductName
+                                                    </a>
+                                                    <small class="text-muted d-block">ĐVT: @item.Unit</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">@item.SalePrice.ToString("N0") đ</td>
+                                        <td class="text-center">
+                                            <form action="/Cart/UpdateCart" method="post" class="d-inline">
+                                                <input type="hidden" name="productID" value="@item.ProductID" />
+                                                <input type="hidden" name="salePrice" value="@item.SalePrice" />
+                                                <div class="input-group input-group-sm justify-content-center" style="width:110px;margin:auto;">
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                            onclick="this.nextElementSibling.stepDown(); this.closest('form').submit()">
+                                                        <i class="bi bi-dash"></i>
+                                                    </button>
+                                                    <input type="number" name="quantity" class="form-control text-center qty-input"
+                                                           value="@item.Quantity" min="1" max="999"
+                                                           onchange="this.closest('form').submit()" />
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                            onclick="this.previousElementSibling.stepUp(); this.closest('form').submit()">
+                                                        <i class="bi bi-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td class="text-end fw-semibold text-danger">
+                                            @((item.Quantity * item.SalePrice).ToString("N0")) đ
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="/Cart/RemoveFromCart" method="post">
+                                                <input type="hidden" name="productID" value="@item.ProductID" />
+                                                <button type="submit" class="btn btn-link text-danger p-0" title="Xóa">
+                                                    <i class="bi bi-trash3 fs-5"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white border-0 d-flex justify-content-between py-3 px-3">
+                        <a href="/Product/Index" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
+                        </a>
+                        <form action="/Cart/ClearCart" method="post">
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Xóa toàn bộ giỏ hàng?')">
+                                <i class="bi bi-trash me-1"></i>Xóa tất cả
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+                    <div class="card-header bg-primary text-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Tóm tắt đơn hàng</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Số lượng sản phẩm:</span>
+                            <span>@Model.Sum(i => i.Quantity)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tạm tính:</span>
+                            <span>@total.ToString("N0") đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển:</span>
+                            <span class="text-success">Miễn phí</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Tổng cộng:</strong>
+                            <strong class="text-danger fs-5">@total.ToString("N0") đ</strong>
+                        </div>
+                        <div class="d-grid">
+                            <a href="/Cart/Checkout" class="btn btn-success btn-lg">
+                                <i class="bi bi-bag-check me-2"></i>Đặt hàng ngay
+                            </a>
+                        </div>
+                        @if (!User.Identity!.IsAuthenticated)
+                        {
+                            <small class="text-muted d-block text-center mt-2">
+                                <a href="/Account/Login">Đăng nhập</a> để đặt hàng
+                            </small>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .cart-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .cart-item-img {
+            width: 84px;
+            height: 84px;
+            min-width: 84px;
+            max-width: 84px;
+            object-fit: cover;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #fff;
+            display: block;
+        }
+
+        .cart-table td,
+        .cart-table th {
+            vertical-align: middle;
+        }
+
+        .cart-table td:first-child a {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        @@media (max-width: 768px) {
+            .cart-item-img {
+                width: 64px;
+                height: 64px;
+                min-width: 64px;
+                max-width: 64px;
+            }
+        }
+    </style>
+}

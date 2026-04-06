@@ -1,0 +1,109 @@
+@model List<SV22T1020427.Models.Sales.OrderViewInfo>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    var status = (SV22T1020427.Models.Sales.OrderStatusEnum)(ViewBag.Status ?? 0);
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0"><i class="bi bi-bag me-2 text-primary"></i>Đơn hàng của tôi</h4>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(status == SV22T1020427.Models.Sales.OrderStatusEnum.All ? "active" : "")"
+               href="/Order/Index?status=0">Tất cả</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(status == SV22T1020427.Models.Sales.OrderStatusEnum.New ? "active" : "")"
+               href="/Order/Index?status=1">
+                <span class="badge bg-secondary me-1">●</span>Chờ xử lý
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(status == SV22T1020427.Models.Sales.OrderStatusEnum.Accepted ? "active" : "")"
+               href="/Order/Index?status=2">
+                <span class="badge bg-primary me-1">●</span>Đã duyệt
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(status == SV22T1020427.Models.Sales.OrderStatusEnum.Shipping ? "active" : "")"
+               href="/Order/Index?status=3">
+                <span class="badge bg-warning me-1">●</span>Đang giao
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(status == SV22T1020427.Models.Sales.OrderStatusEnum.Completed ? "active" : "")"
+               href="/Order/Index?status=4">
+                <span class="badge bg-success me-1">●</span>Hoàn tất
+            </a>
+        </li>
+    </ul>
+
+    @if (Model.Count == 0)
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bag-x fs-1 d-block mb-3"></i>
+            <h5>Chưa có đơn hàng nào</h5>
+            <p>Hãy mua sắm để tạo đơn hàng đầu tiên của bạn.</p>
+            <a href="/Product/Index" class="btn btn-primary px-4">
+                <i class="bi bi-grid me-2"></i>Mua sắm ngay
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var order in Model)
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <span class="fw-bold">#@order.OrderID</span>
+                            <span class="text-muted ms-3 small">
+                                <i class="bi bi-clock me-1"></i>@order.OrderTime.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+                        @{
+                            string badgeClass = order.Status switch
+                            {
+                                SV22T1020427.Models.Sales.OrderStatusEnum.New => "bg-secondary",
+                                SV22T1020427.Models.Sales.OrderStatusEnum.Accepted => "bg-primary",
+                                SV22T1020427.Models.Sales.OrderStatusEnum.Shipping => "bg-warning text-dark",
+                                SV22T1020427.Models.Sales.OrderStatusEnum.Completed => "bg-success",
+                                SV22T1020427.Models.Sales.OrderStatusEnum.Cancelled => "bg-danger",
+                                SV22T1020427.Models.Sales.OrderStatusEnum.Rejected => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+                        }
+                        <span class="badge @badgeClass px-3 py-2">@order.Status.GetDescription()</span>
+                    </div>
+                    <div class="card-body py-3 px-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block"><i class="bi bi-geo-alt me-1"></i>
+                                    @order.DeliveryProvince - @order.DeliveryAddress
+                                </small>
+                                @if (!string.IsNullOrEmpty(order.ShipperName))
+                                {
+                                    <small class="text-muted d-block"><i class="bi bi-truck me-1"></i>
+                                        Người giao: @order.ShipperName (@order.ShipperPhone)
+                                    </small>
+                                }
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <span class="fw-bold text-danger fs-6">@order.SumOfPrice.ToString("N0") đ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 d-flex justify-content-end py-2 px-4">
+                        <a href="/Order/Details/@order.OrderID" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

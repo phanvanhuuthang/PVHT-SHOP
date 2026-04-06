@@ -1,0 +1,294 @@
+@model SV22T1020427.Models.Catalog.Product
+@{
+    ViewData["Title"] = Model.ProductName;
+    var photos = ViewBag.Photos as List<SV22T1020427.Models.Catalog.ProductPhoto> ?? new List<SV22T1020427.Models.Catalog.ProductPhoto>();
+    var attributes = ViewBag.Attributes as List<SV22T1020427.Models.Catalog.ProductAttribute> ?? new List<SV22T1020427.Models.Catalog.ProductAttribute>();
+
+    Func<string?, string> getImageUrl = photo =>
+    {
+        if (string.IsNullOrWhiteSpace(photo) || photo == "nophoto.png")
+            return "";
+
+        if (photo.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || photo.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || photo.StartsWith("/"))
+            return photo;
+
+        return $"/images/products/{photo}";
+    };
+
+    string mainPhoto = getImageUrl(Model.Photo);
+
+    var extraPhotoUrls = photos
+        .Select(p => getImageUrl(p.Photo))
+        .Where(url => !string.IsNullOrWhiteSpace(url))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Where(url => !string.Equals(url, mainPhoto, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    string displayPhoto = !string.IsNullOrEmpty(mainPhoto)
+        ? mainPhoto
+        : (extraPhotoUrls.FirstOrDefault() ?? "");
+
+    var galleryUrls = new List<string>();
+    if (!string.IsNullOrEmpty(displayPhoto))
+    {
+        galleryUrls.Add(displayPhoto);
+    }
+
+    galleryUrls.AddRange(extraPhotoUrls
+        .Where(url => !string.Equals(url, displayPhoto, StringComparison.OrdinalIgnoreCase)));
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="/Product/Index">Sản phẩm</a></li>
+            <li class="breadcrumb-item active">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Product Images -->
+        <div class="col-md-5">
+            <div class="product-main-image-box text-center bg-light rounded-3 p-3 mb-3">
+                @if (!string.IsNullOrEmpty(displayPhoto))
+                {
+                    <img id="mainImage" src="@displayPhoto" alt="@Model.ProductName" class="product-detail-img"
+                         onerror="this.style.display='none'; document.getElementById('mainImageFallback').style.display='flex';" />
+                    <div id="mainImageFallback" class="main-image-fallback" style="display:none;">
+                        <i class="bi bi-image fallback-icon"></i>
+                    </div>
+                }
+                else
+                {
+                    <div id="mainImageFallback" class="main-image-fallback" style="display:flex;">
+                        <i class="bi bi-image fallback-icon"></i>
+                    </div>
+                }
+            </div>
+
+            @if (galleryUrls.Count > 0)
+            {
+                <div class="product-thumbs">
+                    @foreach (var url in galleryUrls)
+                    {
+                        <img src="@url"
+                             alt="Thumbnail"
+                             class="thumbnail-img @(url == displayPhoto ? "active" : "")"
+                             onclick="changeImage('@url', this)" />
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-7">
+            <h2 class="fw-bold mb-2">@Model.ProductName</h2>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ProductDescription))
+            {
+                <p class="text-muted mb-3">@Model.ProductDescription</p>
+            }
+
+            <div class="mb-3">
+                <span class="display-6 fw-bold text-danger">@Model.Price.ToString("N0") đ</span>
+                <small class="text-muted ms-2">/@Model.Unit</small>
+            </div>
+
+            @if (!Model.IsSelling)
+            {
+                <div class="alert alert-warning py-2">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Sản phẩm hiện không còn bán
+                </div>
+            }
+
+            <!-- Add to cart section -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="input-group" style="width:130px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQty(-1)">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <input type="number" id="quantity" class="form-control text-center" value="1" min="1" max="999" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="changeQty(1)">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                @if (Model.IsSelling)
+                {
+                    <button class="btn btn-primary btn-lg px-4"
+                            type="button"
+                            onclick="addToCart(@Model.ProductID)">
+                        <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                    </button>
+
+                    <button class="btn btn-outline-primary btn-lg px-4"
+                            type="button"
+                            onclick="buyNow(@Model.ProductID)">
+                        <i class="bi bi-bag-check me-2"></i>Mua ngay
+                    </button>
+                }
+            </div>
+
+            <!-- Attributes -->
+            @if (attributes.Count > 0)
+            {
+                <div class="card border-0 bg-light rounded-3 p-3">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Thông số kỹ thuật</h6>
+                    <table class="table table-sm table-borderless mb-0">
+                        @foreach (var attr in attributes)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-muted" style="width:40%;">@attr.AttributeName</td>
+                                <td>@attr.AttributeValue</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container">
+    <div id="cartToast" class="toast align-items-center text-bg-success border-0">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMsg">Đã thêm vào giỏ hàng</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(delta) {
+            const input = document.getElementById('quantity');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+
+        function changeImage(src, el) {
+            const mainImage = document.getElementById('mainImage');
+            const fallback = document.getElementById('mainImageFallback');
+
+            if (mainImage) {
+                mainImage.style.display = 'block';
+                mainImage.src = src;
+            }
+            if (fallback) {
+                fallback.style.display = 'none';
+            }
+
+            document.querySelectorAll('.thumbnail-img').forEach(img => img.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function addToCart(productId) {
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `productID=${productId}&quantity=${qty}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('toastMsg').textContent = data.message;
+                    const badge = document.querySelector('.cart-badge');
+                    if (badge) {
+                        badge.textContent = data.cartCount;
+                        badge.classList.toggle('d-none', data.cartCount <= 0);
+                    }
+                    const toast = new bootstrap.Toast(document.getElementById('cartToast'));
+                    toast.show();
+                }
+            });
+        }
+
+        function buyNow(productId) {
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `productID=${productId}&quantity=${qty}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/Cart/Checkout';
+                } else {
+                    alert(data.message || 'Không thể mua ngay lúc này.');
+                }
+            })
+            .catch(() => alert('Có lỗi xảy ra, vui lòng thử lại.'));
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .product-main-image-box {
+            height: 420px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .product-detail-img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+
+        .main-image-fallback {
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            color: #adb5bd;
+        }
+
+        .fallback-icon {
+            font-size: 5rem;
+        }
+
+        .product-thumbs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .thumbnail-img {
+            width: 76px;
+            height: 76px;
+            object-fit: cover;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            padding: 2px;
+            background: #fff;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .thumbnail-img:hover {
+            border-color: #6ea8fe;
+        }
+
+        .thumbnail-img.active {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+        }
+
+        @@media (max-width: 767.98px) {
+            .product-main-image-box {
+                height: 300px;
+            }
+        }
+    </style>
+}

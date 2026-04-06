@@ -1,0 +1,95 @@
+@model SV22T1020427.Models.Partner.Customer
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    var hasError = ViewData.ModelState.TryGetValue("Error", out var errorEntry) && errorEntry.Errors.Count > 0;
+    var errorMessage = hasError ? errorEntry!.Errors[0].ErrorMessage : string.Empty;
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width:80px;height:80px;">
+                        <i class="bi bi-person-fill text-white fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">@Model.CustomerName</h6>
+                </div>
+                <div class="card-footer border-0 bg-light">
+                    <div class="list-group list-group-flush">
+                        <a href="/Account/Profile" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-person me-2"></i>Thông tin cá nhân
+                        </a>
+                        <a href="/Account/ChangePassword" class="list-group-item list-group-item-action">
+                            <i class="bi bi-key me-2"></i>Đổi mật khẩu
+                        </a>
+                        <a href="/Order/Index" class="list-group-item list-group-item-action">
+                            <i class="bi bi-bag me-2"></i>Đơn hàng của tôi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>Thông tin cá nhân</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (ViewBag.SuccessMessage != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="bi bi-check-circle me-2"></i>@ViewBag.SuccessMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (hasError)
+                    {
+                        <div class="alert alert-danger d-block">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <form action="/Account/Profile" method="post">
+                        <input type="hidden" name="customerID" value="@Model.CustomerID" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" name="customerName" class="form-control" value="@Model.CustomerName" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tên giao dịch</label>
+                                <input type="text" name="contactName" class="form-control" value="@Model.ContactName" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Email</label>
+                                <input type="email" class="form-control bg-light" value="@Model.Email" readonly />
+                                <small class="text-muted">Email không thể thay đổi</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Số điện thoại</label>
+                                <input type="tel" name="phone" class="form-control" value="@Model.Phone" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tỉnh/Thành phố</label>
+                                <select name="province" class="form-select" asp-items="ViewBag.Provinces"></select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Địa chỉ</label>
+                                <input type="text" name="address" class="form-control" value="@Model.Address" />
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-save me-2"></i>Lưu thay đổi
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

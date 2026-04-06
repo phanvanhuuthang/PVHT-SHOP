@@ -1,0 +1,229 @@
+﻿@using System.Text.Json
+@model SV22T1020427.Admin.Models.DashboardViewModel
+@{
+    var chartLabels = Model.MonthlyRevenue.Select(x => $"Tháng {x.Month}").ToList();
+    var chartData = Model.MonthlyRevenue.Select(x => x.Revenue).ToList();
+}
+
+<!-- Thống kê nhanh -->
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Doanh thu hôm nay</h6>
+                        <h3 class="mb-0">@Model.TodayRevenue.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) đ</h3>
+                    </div>
+                    <i class="bi bi-currency-dollar fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Đơn hàng</h6>
+                        <h3 class="mb-0">@Model.TotalOrders.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                    </div>
+                    <i class="bi bi-receipt fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+        <div class="card text-bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Khách hàng</h6>
+                        <h3 class="mb-0">@Model.TotalCustomers.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+        <div class="card text-bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Sản phẩm</h6>
+                        <h3 class="mb-0">@Model.TotalProducts.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                    </div>
+                    <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Biểu đồ & thống kê -->
+<div class="row mt-3">
+    <div class="col-lg-8">
+        <div class="card card-success card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart me-1"></i>
+                    Doanh thu theo tháng (@Model.RevenueYear)
+                </h5>
+            </div>
+            <div class="card-body" style="height:320px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card card-info card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-star me-1"></i>
+                    Top sản phẩm bán chạy
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @if (Model.TopSellingProducts.Any())
+                    {
+                        foreach (var item in Model.TopSellingProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@item.ProductName</span>
+                                <span class="badge bg-success">@item.Quantity.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</span>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-muted">Chưa có dữ liệu bán hàng.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Đơn hàng cần xử lý -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history me-1"></i>
+                    Đơn hàng cần xử lý
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ProcessingOrders.Any())
+                        {
+                            foreach (var order in Model.ProcessingOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="~/Order/Detail/@order.OrderID">#DH@(order.OrderID.ToString("D5"))</a>
+                                    </td>
+                                    <td>@order.CustomerName</td>
+                                    <td>@order.OrderTime.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">@order.SumOfPrice.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) đ</td>
+                                    <td>
+                                        @if (order.Status == OrderStatusEnum.New)
+                                        {
+                                            <span class="badge bg-danger">Đang chờ duyệt</span>
+                                        }
+                                        else if (order.Status == OrderStatusEnum.Accepted)
+                                        {
+                                            <span class="badge bg-info text-dark">Đã duyệt</span>
+                                        }
+                                        else if (order.Status == OrderStatusEnum.Shipping)
+                                        {
+                                            <span class="badge bg-warning text-dark">Đang giao hàng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Không xác định</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Không có đơn hàng cần xử lý.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(JsonSerializer.Serialize(chartLabels));
+        const dataValues = @Html.Raw(JsonSerializer.Serialize(chartData));
+
+        const ctx = document.getElementById('revenueChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (đồng)',
+                        data: dataValues,
+                        backgroundColor: 'rgba(13,110,253,0.7)',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return Number(context.raw || 0).toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return Number(value || 0).toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

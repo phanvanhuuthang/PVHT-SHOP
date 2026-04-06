@@ -1,0 +1,96 @@
+﻿@model List<ProductAttribute>
+@{
+    Layout = null;
+}
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-sliders"></i> Các thuộc tính
+                </h3>
+                <div class="card-tools">
+                    <a href="~/Product/AddAttribute/@ViewBag.ProductId" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle"></i> Bổ sung thuộc tính
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Sản phẩm:</strong> iPhone 15 Pro Max 256GB
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 35%;">Tên thuộc tính</th>
+                                <th style="width: 40%;">Giá trị</th>
+                                <th style="width: 10%;" class="text-center">Thứ tự</th>
+                                <th style="width: 10%;" class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Màu sắc</td>
+                                <td>Titan Tự Nhiên</td>
+                                <td class="text-center">1</td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="~/Product/EditAttribute/@ViewBag.ProductId?attributeId=1" class="btn btn-primary" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="~/Product/DeleteAttribute/@ViewBag.ProductId?attributeId=1" class="btn btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Dung lượng</td>
+                                <td>256GB</td>
+                                <td class="text-center">2</td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="~/Product/EditAttribute/@ViewBag.ProductId?attributeId=2" class="btn btn-primary" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="~/Product/DeleteAttribute/@ViewBag.ProductId?attributeId=2" class="btn btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Chip xử lý</td>
+                                <td>Apple A17 Pro</td>
+                                <td class="text-center">3</td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="~/Product/EditAttribute/@ViewBag.ProductId?attributeId=3" class="btn btn-primary" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="~/Product/DeleteAttribute/@ViewBag.ProductId?attributeId=3" class="btn btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="~/Product/Detail/@ViewBag.ProductId" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại sản phẩm
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+﻿@model ProductPhoto
+
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card card-danger">
+            <div class="card-header">
+                
+                    <h3 class="card-title">
+                        <i class="bi bi-exclamation-triangle"></i> Xác nhận xóa hình ảnh
+                    </h3>
+                
+            </div>
+            <div class="card-body">
+                @if (ViewBag.AllowDelete)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa hình ảnh này không?
+                    </div>
+                }else
+                {
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                       Hình ảnh này không thể xóa vì mặt hàng đang được sử dụng
+                    </div>
+                }
+                <div class="alert alert-info">
+                    <strong>Sản phẩm:</strong> @ViewBag.ProductName
+                </div>
+
+                <h5 class="mb-3">Hình ảnh sẽ bị xóa:</h5>
+
+                <div class="text-center mb-3">
+                    <img src="~/images/products/@(string.IsNullOrEmpty(Model.Photo)? "nophoto.jpg": Model.Photo)"  alt="Photo" class="img-thumbnail" style="max-width: 300px;">
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-5">
+                        <strong>Mô tả:</strong>
+                    </div>
+                    <div class="col-md-7">
+                        @Model.Description
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-5">
+                        <strong>Thứ tự hiển thị:</strong>
+                    </div>
+                    <div class="col-md-7">
+                        @Model.DisplayOrder
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                @if (ViewBag.AllowDelete)
+                {
+                    <form method="post" action="~/Product/DeletePhoto/@Model.ProductID?photoId=@Model.PhotoID" style="display: inline;">
+
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Xác nhận xóa
+                        </button>
+                    </form>
+                }
+                <a href="~/Product/Edit/@Model.ProductID#photos" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

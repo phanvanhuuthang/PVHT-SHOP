@@ -1,0 +1,497 @@
+﻿@model OrderViewInfo
+@{
+    ViewBag.Title = "Chi tiết đơn hàng";
+
+    bool isNew = Model.Status == OrderStatusEnum.New;
+    bool isAccepted = Model.Status == OrderStatusEnum.Accepted;
+    bool isShipping = Model.Status == OrderStatusEnum.Shipping;
+    bool canShowProcessMenu = isNew || isAccepted || isShipping;
+}
+
+@section PageToolBar {
+    @if (canShowProcessMenu)
+    {
+        <div class="btn-group">
+            <button type="button"
+                    class="btn btn-primary dropdown-toggle"
+                    data-bs-toggle="dropdown">
+                <i class="bi bi-gear me-1"></i>
+                Xử lý đơn hàng
+            </button>
+
+            <ul class="dropdown-menu">
+                @* Đang chờ duyệt: Duyệt / Hủy / Từ chối *@
+                @if (isNew)
+                {
+                    <li>
+                        <a class="dropdown-item open-modal" onclick="openModal(event,this)" href="~/Order/Accept/@Model.OrderID">
+                            Duyệt đơn hàng
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger open-modal" onclick="openModal(event,this)" href="~/Order/Cancel/@Model.OrderID">
+                            Hủy đơn hàng
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-danger open-modal" onclick="openModal(event,this)" href="~/Order/Reject/@Model.OrderID">
+                            Từ chối đơn hàng
+                        </a>
+                    </li>
+                }
+
+                @* Đã duyệt: Chuyển giao / Hoàn tất / Hủy *@
+                @if (isAccepted)
+                {
+                    <li>
+                        <a class="dropdown-item open-modal" onclick="openModal(event,this)" href="~/Order/Shipping/@Model.OrderID">
+                            Chuyển giao hàng
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item open-modal" onclick="openModal(event,this)" href="~/Order/Finish/@Model.OrderID">
+                            Hoàn tất đơn hàng
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger open-modal" onclick="openModal(event,this)" href="~/Order/Cancel/@Model.OrderID">
+                            Hủy đơn hàng
+                        </a>
+                    </li>
+                }
+
+                @* Đang giao: Hoàn tất / Hủy *@
+                @if (isShipping)
+                {
+                    <li>
+                        <a class="dropdown-item open-modal" onclick="openModal(event,this)" href="~/Order/Finish/@Model.OrderID">
+                            Hoàn tất đơn hàng
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger open-modal" onclick="openModal(event,this)" href="~/Order/Cancel/@Model.OrderID">
+                            Hủy đơn hàng
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (Model.Status == OrderStatusEnum.New)
+    {
+        <a class="btn btn-danger ms-1 open-modal"
+           href="~/Order/Delete/@Model.OrderID"
+           onclick="openModal(event,this)">
+            <i class="bi bi-trash"></i>
+            Xóa
+        </a>
+    }
+
+    <a href="~/Order" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<!-- TRẠNG THÁI ĐƠN HÀNG -->
+<div class="alert alert-success d-flex align-items-center mb-3">
+    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+    <div>
+        <strong>Trạng thái đơn hàng:</strong>
+        @if (Model.Status == (OrderStatusEnum)1)
+        {
+            <span class="badge bg-success">Đang chờ duyệt</span>
+        }
+        else if (Model.Status == (OrderStatusEnum)(-2))
+        {
+            <span class="badge bg-danger">Bị từ chối</span>
+            <b>lúc @Model.FinishedTime </b>
+        }
+        else if (Model.Status == (OrderStatusEnum)(-1))
+        {
+            <span class="badge bg-secondary">Bị hủy</span>
+            <b>lúc @Model.FinishedTime </b>
+        }
+        else if (Model.Status == (OrderStatusEnum)2)
+        {
+            <span class="badge bg-info text-dark">Đã duyệt</span>
+            <b>lúc @Model.AcceptTime </b>
+        }
+        else if (Model.Status == (OrderStatusEnum)3)
+        {
+            <span class="badge bg-primary">Đang giao hàng</span>
+            <b>lúc @Model.ShippedTime </b>
+        }
+        else if (Model.Status == (OrderStatusEnum)4)
+        {
+            <span class="badge bg-success">Hoàn tất</span>
+            <b>lúc @Model.FinishedTime </b>
+        }
+
+         
+    </div>
+</div>
+
+<!-- THÔNG TIN ĐƠN HÀNG -->
+<div class="card card-primary card-outline mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-receipt me-2"></i>
+            Thông tin đơn hàng
+        </h5>
+    </div>
+
+    <div class="card-body ps-4 pe-4">
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Mã đơn hàng</div>
+            <div class="col-md-3">@Model.OrderID</div>
+
+            <div class="col-md-3 fw-bold">Ngày lập</div>
+            <div class="col-md-3">@Model.OrderTime.ToString("dd/MM/yyyy HH:mm:ss")</div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Nhân viên phụ trách</div>
+            <div class="col-md-3">@Model.EmployeeName</div>
+
+            <div class="col-md-3 fw-bold">Ngày nhận đơn</div>
+            <div class="col-md-3">@(Model.AcceptTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "-")</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 fw-bold">Ngày hoàn tất</div>
+            <div class="col-md-3">@(Model.FinishedTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "-")</div>
+
+            <div class="col-md-3 fw-bold">Ngày giao hàng</div>
+            <div class="col-md-3">@(Model.ShippedTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "-")</div>
+        </div>
+    </div>
+</div>
+
+<!-- THÔNG TIN KHÁCH HÀNG -->
+<div class="card card-info card-outline mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-person me-2"></i>
+            Thông tin khách hàng
+        </h5>
+    </div>
+
+    <div class="card-body ps-4 pe-4">
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Khách hàng</div>
+            <div class="col-md-3">@Model.CustomerName</div>
+
+            <div class="col-md-3 fw-bold">Tên giao dịch</div>
+            <div class="col-md-3">@Model.CustomerContactName</div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Email</div>
+            <div class="col-md-9">@Model.CustomerEmail</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 fw-bold">Địa chỉ</div>
+            <div class="col-md-9">@Model.CustomerAddress</div>
+        </div>
+    </div>
+</div>
+
+<!-- THÔNG TIN GIAO HÀNG -->
+<div class="card card-success card-outline mb-3">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-truck me-2"></i>
+            Thông tin giao hàng
+        </h5>
+    </div>
+
+    <div class="card-body ps-4 pe-4">
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Người giao hàng</div>
+            <div class="col-md-3">@Model.ShipperName</div>
+
+            <div class="col-md-3 fw-bold">Điện thoại</div>
+            <div class="col-md-3">@Model.ShipperPhone</div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-3 fw-bold">Địa chỉ giao hàng</div>
+            <div class="col-md-9">@Model.DeliveryAddress</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 fw-bold">Tỉnh / Thành</div>
+            <div class="col-md-9">@Model.DeliveryProvince</div>
+        </div>
+    </div>
+</div>
+
+<!-- DANH SÁCH MẶT HÀNG -->
+@{
+    int stt = 0;
+    decimal sumPrice = 0;
+}
+
+<div class="card card-secondary card-outline">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-box-seam me-2"></i>
+            Danh sách mặt hàng
+        </h5>
+    </div>
+
+    <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-secondary text-center">
+                <tr>
+                    <th>STT</th>
+                    <th>Tên hàng</th>
+                    <th>ĐVT</th>
+                    <th>Số lượng</th>
+                    <th>Giá</th>
+                    <th>Thành tiền</th>
+                    <th style="width:90px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.OrderDetails)
+                {
+                    stt += 1;
+                    sumPrice += item.TotalPrice;
+                    <tr>
+                        <td class="text-center">@stt</td>
+                        <td>@item.ProductName</td>
+                        <td class="text-center">@item.Unit</td>
+                        <td class="text-center">@item.Quantity</td>
+                        <td class="text-end">@item.SalePrice.ToString("N0", new CultureInfo("vi-VN"))</td>
+                        <td class="text-end">@item.TotalPrice.ToString("N0", new CultureInfo("vi-VN"))</td>
+                        <td class="text-end">
+                            @if (isAccepted || isNew)
+                            {
+                                <a class="btn btn-sm btn-primary open-modal" 
+                                href="~/Order/EditOrderItem?orderId=@item.OrderID&productId=@item.ProductID" 
+                                onclick="openModal(event,this)">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a class="btn btn-sm btn-danger open-modal" 
+                                href="~/Order/DeleteOrderItem?orderId=@item.OrderID&productId=@item.ProductID" 
+                                onclick="openModal(event,this)">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="5" class="text-end">Tổng cộng</th>
+                    <th class="text-end">@sumPrice.ToString("N0", new CultureInfo("vi-VN"))</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card-body .row {
+            border-bottom: 1px dotted #646464;
+        }
+    </style>
+}
+@section Scripts {
+    <script>
+        // Cập nhật mặt hàng trong đơn hàng
+        function updateOrderItem(event, form) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch("/Order/UpdateOrderItem", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    location.reload();
+                })
+                .catch(() => {
+                    alert("Không thể cập nhật mặt hàng. Vui lòng thử lại.");
+                });
+        }
+        // Xóa mặt hàng khỏi đơn hàng
+        function deleteOrderItem(orderID,productID)
+        {
+            fetch(`/Order/DeleteOrderItem?orderId=${orderID}&productId=${productID}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                if (result.code === 0) {
+                    alert(result.message);
+                    return;
+                }
+
+                const modalEl = document.getElementById("dialogModal");
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                }
+
+                location.reload();
+            })
+            .catch(() => {
+                alert("Không thể xóa mặt hàng. Vui lòng thử lại.");
+            });
+        }
+        // Xóa đơn hàng
+        function deleteOrder(orderId) {
+            fetch(`/Order/Delete?id=${orderId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+                    window.location.href = "/Order";
+                })
+                .catch(() => {
+                    alert("Không thể xóa đơn hàng. Vui lòng thử lại.");
+                });
+        }
+        // Duyệt và chấp nhận đơn hàng
+        function accept(orderId) {
+            fetch(`/Order/Accept/${orderId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    window.location.href = `/Order/Detail/${orderId}`;
+                })
+                .catch(() => {
+                    alert("Không thể duyệt đơn hàng. Vui lòng thử lại.");
+                });
+        }
+        // Hủy đơn hàng
+        function cancel(orderId) {
+            fetch(`/Order/Cancel/${orderId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    window.location.href = `/Order/Detail/${orderId}`;
+                })
+                .catch(() => {
+                    alert("Không thể hủy đơn hàng. Vui lòng thử lại.");
+                });
+        }
+        function reject(orderId) {
+            fetch(`/Order/Reject/${orderId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    window.location.href = `/Order/Detail/${orderId}`;
+                })
+                .catch(() => {
+                    alert("Không thể từ chối đơn hàng. Vui lòng thử lại.");
+                });
+        }
+        // Chuyển giao hàng
+        function shipping(event, form) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch("/Order/Shipping", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    const orderId = formData.get("id");
+                    window.location.href = `/Order/Detail/${orderId}`;
+                })
+                .catch(() => {
+                    alert("Không thể chuyển giao hàng. Vui lòng thử lại.");
+                });
+        }
+        function finish(orderId) 
+        {
+            fetch(`/Order/Finish/${orderId}`, { method: "POST" })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === 0) {
+                        alert(result.message);
+                        return;
+                    }
+
+                    const modalEl = document.getElementById("dialogModal");
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+
+                    window.location.href = `/Order/Detail/${orderId}`;
+                })
+                .catch(() => {
+                    alert("Không thể hoàn thành đơn hàng. Vui lòng thử lại.");
+                });
+        }
+    </script>
+}
