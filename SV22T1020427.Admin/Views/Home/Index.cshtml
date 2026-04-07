@@ -6,58 +6,66 @@
 }
 
 <!-- Thống kê nhanh -->
-<div class="row">
+<div class="row g-3">
     <div class="col-lg-3 col-6">
-        <div class="card text-bg-primary">
+        <div class="card text-bg-primary dashboard-stat-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">Doanh thu hôm nay</h6>
-                        <h3 class="mb-0">@Model.TodayRevenue.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) đ</h3>
+                        <h6 class="dashboard-stat-title">Doanh thu hôm nay</h6>
+                        <h3 class="dashboard-stat-value">
+                            @Model.TodayRevenue.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))&nbsp;đ
+                        </h3>
                     </div>
-                    <i class="bi bi-currency-dollar fs-1 opacity-50"></i>
+                    <i class="bi bi-currency-dollar dashboard-stat-icon"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-6">
-        <div class="card text-bg-success">
+        <div class="card text-bg-success dashboard-stat-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">Đơn hàng</h6>
-                        <h3 class="mb-0">@Model.TotalOrders.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                        <h6 class="dashboard-stat-title">Đơn hàng</h6>
+                        <h3 class="dashboard-stat-value">
+                            @Model.TotalOrders.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))
+                        </h3>
                     </div>
-                    <i class="bi bi-receipt fs-1 opacity-50"></i>
+                    <i class="bi bi-receipt dashboard-stat-icon"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-6">
-        <div class="card text-bg-warning">
+        <div class="card text-bg-warning dashboard-stat-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">Khách hàng</h6>
-                        <h3 class="mb-0">@Model.TotalCustomers.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                        <h6 class="dashboard-stat-title">Khách hàng</h6>
+                        <h3 class="dashboard-stat-value">
+                            @Model.TotalCustomers.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))
+                        </h3>
                     </div>
-                    <i class="bi bi-people fs-1 opacity-50"></i>
+                    <i class="bi bi-people dashboard-stat-icon"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-3 col-6">
-        <div class="card text-bg-danger">
+        <div class="card text-bg-danger dashboard-stat-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="card-title">Sản phẩm</h6>
-                        <h3 class="mb-0">@Model.TotalProducts.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                        <h6 class="dashboard-stat-title">Sản phẩm</h6>
+                        <h3 class="dashboard-stat-value">
+                            @Model.TotalProducts.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))
+                        </h3>
                     </div>
-                    <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    <i class="bi bi-box-seam dashboard-stat-icon"></i>
                 </div>
             </div>
         </div>
@@ -177,11 +185,44 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .dashboard-stat-card .card-body {
+            min-height: 88px;
+            padding: 1rem;
+        }
+
+        .dashboard-stat-title {
+            margin-bottom: .35rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .dashboard-stat-value {
+            margin-bottom: 0;
+            font-size: clamp(1.9rem, 2.2vw, 2.25rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: .2px;
+            white-space: nowrap;
+        }
+
+        .dashboard-stat-icon {
+            font-size: 2.2rem;
+            line-height: 1;
+            opacity: .55;
+        }
+    </style>
+}
+
 @section Scripts {
+    <script id="chart-labels-json" type="application/json">@Html.Raw(JsonSerializer.Serialize(chartLabels))</script>
+    <script id="chart-data-json" type="application/json">@Html.Raw(JsonSerializer.Serialize(chartData))</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const labels = @Html.Raw(JsonSerializer.Serialize(chartLabels));
-        const dataValues = @Html.Raw(JsonSerializer.Serialize(chartData));
+        const labels = JSON.parse(document.getElementById('chart-labels-json').textContent || "[]");
+        const dataValues = JSON.parse(document.getElementById('chart-data-json').textContent || "[]");
 
         const ctx = document.getElementById('revenueChart');
         if (ctx) {

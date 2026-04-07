@@ -168,15 +168,26 @@ namespace SV22T1020427.Admin.Controllers
         {
             if (Request.Method == "POST")
             {
-                await CatalogDataService.DeleteProductAsync(id,ApplicationContext.WWWRootPath);
+                var deleted = await CatalogDataService.DeleteProductAsync(id, ApplicationContext.WWWRootPath);
+                if (!deleted)
+                {
+                    TempData["ErrorMessage"] = "Mặt hàng đang có trong đơn hàng, không thể xóa.";
+                    return RedirectToAction("Delete", new { id });
+                }
+
+                TempData["SuccessMessage"] = "Đã xóa mặt hàng thành công.";
                 return RedirectToAction("Index");
             }
+
             var model = await CatalogDataService.GetProductAsync(id);
-            if (model == null) return RedirectToAction("Index");
+            if (model == null)
+                return RedirectToAction("Index");
+
             ViewBag.AllowDelete = !await CatalogDataService.IsUsedProductAsync(id);
+
             var category = model.CategoryID.HasValue
-                   ? await CatalogDataService.GetCategoryAsync(model.CategoryID.Value)
-                   : null;
+                ? await CatalogDataService.GetCategoryAsync(model.CategoryID.Value)
+                : null;
 
             var supplier = model.SupplierID.HasValue
                 ? await PartnerDataService.GetSupplierAsync(model.SupplierID.Value)
@@ -240,17 +251,20 @@ namespace SV22T1020427.Admin.Controllers
         {
             if (Request.Method == "POST")
             {
-                if (!await CatalogDataService.IsUsedProductAsync(id))
-                    await CatalogDataService.DeleteAttributeAsync(attributeId);
+                await CatalogDataService.DeleteAttributeAsync(attributeId);
                 return Redirect($"~/Product/Edit/{id}#attributes");
             }
+
             var model = await CatalogDataService.GetAttributeAsync(attributeId);
-            if (model == null) return RedirectToAction("Edit",new {id});
+            if (model == null)
+                return RedirectToAction("Edit", new { id });
+
             var product = await CatalogDataService.GetProductAsync(id);
             ViewBag.ProductName = product?.ProductName ?? "";
             ViewBag.ProductID = id;
             ViewBag.AttributeID = attributeId;
-            ViewBag.AllowDelete = !await CatalogDataService.IsUsedProductAsync(id);
+            ViewBag.AllowDelete = true;
+
             return View(model);
         }
         /// <summary>
@@ -307,17 +321,18 @@ namespace SV22T1020427.Admin.Controllers
         {
             if (Request.Method == "POST")
             {
-                if (!await CatalogDataService.IsUsedProductAsync(id))
-                    await CatalogDataService.DeletePhotoAsync(photoId);
-
+                await CatalogDataService.DeletePhotoAsync(photoId);
                 return Redirect($"~/Product/Edit/{id}#photos");
             }
+
             var model = await CatalogDataService.GetPhotoAsync(photoId);
-            if (model == null) return RedirectToAction("Edit",new {id});
+            if (model == null)
+                return RedirectToAction("Edit", new { id });
 
             var product = await CatalogDataService.GetProductAsync(id);
             ViewBag.ProductName = product?.ProductName ?? "";
-            ViewBag.AllowDelete = !await CatalogDataService.IsUsedProductAsync(id);
+            ViewBag.AllowDelete = true;
+
             return View(model);
 
         }

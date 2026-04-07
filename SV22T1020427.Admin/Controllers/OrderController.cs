@@ -177,16 +177,20 @@ namespace SV22T1020427.Admin.Controllers
         /// </summary>
         /// <param name="productId">Mã mặt hàng cần xử lý</param>
         /// <returns></returns>
-        public IActionResult DeleteCartItem(int productId=0)
+        public IActionResult DeleteCartItem(int productId = 0)
         {
             if (Request.Method == "POST")
             {
                 ShoppingCartHelper.RemoveItemFromCart(productId);
                 return Json(new ApiResult(1, ""));
             }
-            //GET: Hiển thị giao diện dể xác nhận
-            ViewBag.ProductId = productId;
-            return PartialView();
+
+            // GET: Hiển thị giao diện để xác nhận
+            var item = ShoppingCartHelper.GetCartItem(productId);
+            ViewBag.ProductID = productId;
+            ViewBag.ProductName = item?.ProductName ?? "(Không xác định)";
+
+            return PartialView(item);
         }
         /// <summary>
         /// Xóa giỏ hàng
@@ -295,7 +299,14 @@ namespace SV22T1020427.Admin.Controllers
             if (orderId == 0)
                 return Json(new ApiResult(0, "Đơn hàng không tồn tại"));
             //UPDATE trong giỏ hàng
-            var result = await OrderItemHelper.UpdateOrderItemAsync(orderId,productId, quantity, salePrice);
+            var data = new OrderDetail
+            {
+                OrderID = orderId,
+                ProductID = productId,
+                Quantity = quantity,
+                SalePrice = salePrice
+            };
+            var result = await SalesDataService.UpdateDetailAsync(data);
             if (!result)
                 return Json(new ApiResult(0, "Cập nhật không thành công"));
             return Json(new ApiResult(1, ""));
@@ -306,12 +317,12 @@ namespace SV22T1020427.Admin.Controllers
         /// </summary>
         /// <param name="productId">Mã mặt hàng cần xử lý</param>
         /// <returns></returns>
-        public IActionResult DeleteOrderItem(int orderId =0,int productId = 0)
+        public async Task<IActionResult> DeleteOrderItem(int orderId =0,int productId = 0)
         {
             if (Request.Method == "POST")
             {
-               var result = OrderItemHelper.DeleteOrderItemAsync(orderId,productId);
-                if (!result.Result)
+               var result = await SalesDataService.DeleteDetailAsync(orderId,productId);
+                if (!result)
                     return Json(new ApiResult(0, "Xóa không thành công"));
                 return Json(new ApiResult(1, ""));
             }

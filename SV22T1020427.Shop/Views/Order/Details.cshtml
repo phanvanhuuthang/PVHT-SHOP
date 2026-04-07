@@ -1,4 +1,4 @@
-@model SV22T1020427.Models.Sales.OrderViewInfo
+@model OrderViewInfo
 @{
     ViewData["Title"] = $"Đơn hàng #{Model.OrderID}";
     var details = ViewBag.Details as List<SV22T1020427.Models.Sales.OrderDetailViewInfo> ?? new List<SV22T1020427.Models.Sales.OrderDetailViewInfo>();

@@ -1,8 +1,7 @@
 ﻿@model ProductAttribute
 
-
 <div class="row">
-    <div class="col-md-12 offset-md-12">
+    <div class="col-md-6 offset-md-3">
         <div class="card card-danger">
             <div class="card-header">
                 <h3 class="card-title">
@@ -10,21 +9,11 @@
                 </h3>
             </div>
             <div class="card-body">
-                @if (ViewBag.AllowDelete)
-                {
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-circle"></i>
                     <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa thuộc tính này không?
-                    </div>
-                }
-                else
-                {
+                </div>
 
-                    <div class="alert alert-warning d-flex align-items-center">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Thuộc tính này không thể xóa vì mặt hàng đang được sử dụng
-                    </div>
-                }
                 <div class="alert alert-info">
                     <strong>Sản phẩm:</strong> @ViewBag.ProductName
                 </div>
@@ -32,31 +21,21 @@
                 <h5 class="mb-3">Thông tin thuộc tính:</h5>
 
                 <div class="row mb-3">
-                    <div class="col-md-5">
-                        <strong>Tên thuộc tính:</strong>
-                    </div>
-                    <div class="col-md-7">
-                        @Model.AttributeName
-                    </div>
+                    <div class="col-md-5"><strong>Tên thuộc tính:</strong></div>
+                    <div class="col-md-7">@Model.AttributeName</div>
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-md-5">
-                        <strong>Giá trị:</strong>
-                    </div>
-                    <div class="col-md-7">
-                        @Model.AttributeValue
-                    </div>
+                    <div class="col-md-5"><strong>Giá trị:</strong></div>
+                    <div class="col-md-7">@Model.AttributeValue</div>
                 </div>
             </div>
 
             <div class="card-footer">
                 <form method="post" action="~/Product/DeleteAttribute/@Model.ProductID?attributeId=@Model.AttributeID" style="display: inline;">
-                    @if (ViewBag.AllowDelete){
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash"></i> Xác nhận xóa
                     </button>
-                    }
                 </form>
                 <a href="~/Product/Edit/@Model.ProductID#attributes" class="btn btn-secondary">
                     <i class="bi bi-x-circle"></i> Hủy

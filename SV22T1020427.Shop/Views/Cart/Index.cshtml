@@ -27,11 +27,11 @@
                         <table class="table cart-table align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-3" style="width:50%">Sản phẩm</th>
-                                    <th class="text-center">Đơn giá</th>
-                                    <th class="text-center">Số lượng</th>
-                                    <th class="text-end">Thành tiền</th>
-                                    <th class="text-center">Xóa</th>
+                                    <th class="ps-3" style="width:46%">Sản phẩm</th>
+                                    <th class="text-center" style="width:14%">Đơn giá</th>
+                                    <th class="text-center" style="width:15%">Số lượng</th>
+                                    <th class="text-end" style="width:17%">Thành tiền</th>
+                                    <th class="text-center" style="width:8%">Xóa</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -67,7 +67,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-center">@item.SalePrice.ToString("N0") đ</td>
+                                        <td class="text-center money">@item.SalePrice.ToString("N0")&nbsp;đ</td>
                                         <td class="text-center">
                                             <form action="/Cart/UpdateCart" method="post" class="d-inline">
                                                 <input type="hidden" name="productID" value="@item.ProductID" />
@@ -87,8 +87,8 @@
                                                 </div>
                                             </form>
                                         </td>
-                                        <td class="text-end fw-semibold text-danger">
-                                            @((item.Quantity * item.SalePrice).ToString("N0")) đ
+                                        <td class="text-end fw-semibold text-danger money">
+                                            @((item.Quantity * item.SalePrice).ToString("N0"))&nbsp;đ
                                         </td>
                                         <td class="text-center">
                                             <form action="/Cart/RemoveFromCart" method="post">
@@ -158,44 +158,4 @@
     }
 </div>
 
-@section Styles {
-    <style>
-        .cart-table {
-            table-layout: fixed;
-            width: 100%;
-        }
-
-        .cart-item-img {
-            width: 84px;
-            height: 84px;
-            min-width: 84px;
-            max-width: 84px;
-            object-fit: cover;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            background: #fff;
-            display: block;
-        }
-
-        .cart-table td,
-        .cart-table th {
-            vertical-align: middle;
-        }
-
-        .cart-table td:first-child a {
-            display: -webkit-box;
-            overflow: hidden;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-
-        @@media (max-width: 768px) {
-            .cart-item-img {
-                width: 64px;
-                height: 64px;
-                min-width: 64px;
-                max-width: 64px;
-            }
-        }
-    </style>
-}
+@Html.ValidationMessage("Error", new { @class = "alert alert-danger d-block mb-3" })
