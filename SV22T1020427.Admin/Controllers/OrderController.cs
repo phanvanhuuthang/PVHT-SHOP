@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SV22T1020427.BusinessLayers;
 using SV22T1020427.Models.Catalog;
 using SV22T1020427.Models.Sales;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace SV22T1020427.Admin.Controllers
@@ -47,10 +48,50 @@ namespace SV22T1020427.Admin.Controllers
         /// <returns></returns>
         public async Task<IActionResult> Search(OrderSearchInput input)
         {
+            var rawDateFrom = Request.Query["DateFrom"].ToString();
+            var rawDateTo = Request.Query["DateTo"].ToString();
+
+            input.DateFrom = ParseUiDate(rawDateFrom);
+            input.DateTo = ParseUiDate(rawDateTo);
+
+            if (input.DateFrom.HasValue && input.DateTo.HasValue && input.DateFrom > input.DateTo)
+            {
+                (input.DateFrom, input.DateTo) = (input.DateTo, input.DateFrom);
+            }
+
             var result = await SalesDataService.ListOrdersAsync(input);
-            
             ApplicationContext.SetSessionData(ORDERSEARCHINPUT, input);
             return View(result);
+        }
+
+        private static DateTime? ParseUiDate(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            value = value.Trim();
+
+            var vi = CultureInfo.GetCultureInfo("vi-VN");
+            var us = CultureInfo.GetCultureInfo("en-US");
+
+            string[] viFormats =
+            {
+                "d/M/yyyy", "dd/MM/yyyy",
+                "d/M/yyyy H:m", "dd/MM/yyyy HH:mm",
+                "d/M/yyyy H:m:s", "dd/MM/yyyy HH:mm:ss"
+            };
+
+            if (DateTime.TryParseExact(value, viFormats, vi, DateTimeStyles.None, out var dt))
+                return dt.Date;
+
+            if (DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+                return dt.Date;
+
+            string[] usFormats = { "M/d/yyyy", "MM/dd/yyyy" };
+            if (DateTime.TryParseExact(value, usFormats, us, DateTimeStyles.None, out dt))
+                return dt.Date;
+
+            return null;
         }
         #endregion
         #region Lập đơn hàng
